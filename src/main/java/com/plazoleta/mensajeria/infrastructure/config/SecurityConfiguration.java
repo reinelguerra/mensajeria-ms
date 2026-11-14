@@ -1,5 +1,6 @@
 package com.plazoleta.mensajeria.infrastructure.config;
 
+import com.plazoleta.mensajeria.domain.model.RolUsuario;
 import com.plazoleta.mensajeria.domain.util.MensajeError;
 import com.plazoleta.mensajeria.infrastructure.security.JwtAuthenticationFilter;
 import com.plazoleta.mensajeria.infrastructure.security.JwtTokenParser;
@@ -7,6 +8,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -21,6 +23,8 @@ import java.nio.charset.StandardCharsets;
 
 @Configuration
 public class SecurityConfiguration {
+
+    private static final String RUTA_SMS = "/api/v1/mensajeria/sms";
 
     @Bean
     public JwtTokenParser jwtTokenParser(@Value("${jwt.secret}") String secreto) {
@@ -39,6 +43,8 @@ public class SecurityConfiguration {
                                 rutas.matcher("/swagger-ui/**"),
                                 rutas.matcher("/swagger-ui.html"),
                                 rutas.matcher("/v3/api-docs/**")).permitAll()
+                        .requestMatchers(rutas.matcher(HttpMethod.POST, RUTA_SMS))
+                                .hasRole(RolUsuario.EMPLEADO.name())
                         .anyRequest().authenticated())
                 .addFilterBefore(new JwtAuthenticationFilter(jwtTokenParser),
                         UsernamePasswordAuthenticationFilter.class)
